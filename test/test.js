@@ -81,4 +81,103 @@ describe('rdf-serializer-csvw', () => {
       assert.equal(result.toString(), csv)
     })
   })
+
+  it('should serialize incoming quads and ignore unknown quads', () => {
+    const quad0 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/property0'),
+      rdf.literal('value0')
+    )
+    const quad1 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/property2'),
+      rdf.literal('value2')
+    )
+
+    const csv = 'property0,property1,subject\nvalue0,,http://example.org/subject\n'
+
+    const input = new Readable({
+      objectMode: true,
+      read: () => {
+        input.push(quad0)
+        input.push(quad1)
+        input.push(null)
+      }
+    })
+
+    const serializer = new CSVSerializer({
+      metadata: JSON.parse(fs.readFileSync(path.join(__dirname, 'support/metadata.json')))
+    })
+    const stream = serializer.import(input)
+
+    return concat(stream).then((result) => {
+      assert.equal(result.toString(), csv)
+    })
+  })
+
+  it('should ignore subject if not defined', () => {
+    const quad0 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/property0'),
+      rdf.literal('value0')
+    )
+    const quad1 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/property1'),
+      rdf.literal('value1')
+    )
+
+    const csv = 'property0,property1\nvalue0,value1\n'
+
+    const input = new Readable({
+      objectMode: true,
+      read: () => {
+        input.push(quad0)
+        input.push(quad1)
+        input.push(null)
+      }
+    })
+
+    const serializer = new CSVSerializer({
+      metadata: JSON.parse(fs.readFileSync(path.join(__dirname, 'support/metadata-no-subject.json')))
+    })
+    const stream = serializer.import(input)
+
+    return concat(stream).then((result) => {
+      assert.equal(result.toString(), csv)
+    })
+  })
+
+  it('should ignore empty lines', () => {
+    const quad0 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/propertyA'),
+      rdf.literal('value0')
+    )
+    const quad1 = rdf.quad(
+      rdf.namedNode('http://example.org/subject'),
+      rdf.namedNode('http://example.org/propertyB'),
+      rdf.literal('value1')
+    )
+
+    const csv = 'property0,property1\n'
+
+    const input = new Readable({
+      objectMode: true,
+      read: () => {
+        input.push(quad0)
+        input.push(quad1)
+        input.push(null)
+      }
+    })
+
+    const serializer = new CSVSerializer({
+      metadata: JSON.parse(fs.readFileSync(path.join(__dirname, 'support/metadata-no-subject.json')))
+    })
+    const stream = serializer.import(input)
+
+    return concat(stream).then((result) => {
+      assert.equal(result.toString(), csv)
+    })
+  })
 })
