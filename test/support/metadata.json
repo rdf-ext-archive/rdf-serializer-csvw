@@ -1,0 +1,13 @@
+{
+  "@context": ["http://www.w3.org/ns/csvw"],
+  "tableSchema": {
+    "columns": [{
+      "name": "property0",
+      "propertyUrl": "http://example.org/property0"
+    }, {
+      "name": "property1",
+      "propertyUrl": "http://example.org/property1"
+    }],
+    "aboutUrl": "subject"
+  }
+}
